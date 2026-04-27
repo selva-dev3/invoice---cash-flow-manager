@@ -66,13 +66,13 @@ The **Invoice & Cash Flow Manager** is a professional-grade, full-stack financia
 ### Backend (Python)
 | Layer | Technology |
 | :--- | :--- |
-| Framework | FastAPI |
+| Framework | Django / Django REST Framework |
 | ML Model | Facebook Prophet |
 | Data Analysis | pandas, numpy |
 | PDF Engine | ReportLab |
 | Background Jobs | Celery |
 | Task Queue | Redis |
-| Database Ops | SQLAlchemy |
+| Documentation | drf-spectacular (Swagger/Redoc) |
 
 ### Infrastructure
 | Layer | Technology |
@@ -134,52 +134,27 @@ The **Invoice & Cash Flow Manager** is a professional-grade, full-stack financia
 ---
 
 ## 4. FOLDER STRUCTURE
-
 ```text
-invoice-app/ (Next.js)                  api-service/ (Python Backend)
-├── app/                                ├── app/
-│   ├── (auth)/                         │   ├── db/                     # DB Session & Queries
-│   │   ├── login/                      │   │   ├── session.py
-│   │   └── register/                   │   │   └── queries.py
-│   ├── (dashboard)/                    │   ├── models/                 # SQLAlchemy Models
-│   │   ├── layout.tsx                  │   │   └── forecast.py
-│   │   ├── page.tsx                    │   ├── routers/                # API Endpoints
-│   │   ├── invoices/                   │   │   ├── forecast.py
-│   │   │   ├── page.tsx                │   │   ├── reports.py
-│   │   │   ├── new/                    │   │   └── health.py
-│   │   │   └── [id]/                   │   ├── services/               # Logic & ML
-│   │   ├── clients/                    │   │   ├── forecast/
-│   │   │   └── [id]/                   │   │   │   ├── prophet_model.py
-│   │   ├── expenses/                   │   │   │   └── preprocessor.py
-│   │   └── cashflow/                   │   │   ├── pdf_generator.py    # ReportLab Logic
-│   ├── portal/                         │   │   └── email_service.py
-│   │   └── [token]/page.tsx            │   ├── tasks/                  # Celery Background Jobs
-│   │                                   │   │   ├── celery_app.py
-│   │                                   │   │   └── reminder_tasks.py
-│   └── api/                            │   └── main.py                 # FastAPI Entry
-│       ├── auth/[...nextauth]/         ├── tests/                      # Pytest Suite
-│       ├── invoices/                   ├── requirements.txt
-│       ├── payments/                   ├── Dockerfile
-│       └── webhook/stripe/             └── .env
-├── components/                         
-│   ├── ui/                             infra/ (Orchestration)
-│   ├── invoices/                       ├── docker-compose.yml          # Local Stack
-│   │   ├── InvoiceForm.tsx             ├── docker-compose.prod.yml     # Production Stack
-│   │   └── LineItemsEditor.tsx         └── nginx/
-│   ├── cashflow/                       └── nginx.conf              # Reverse Proxy
-│   │   └── ForecastChart.tsx           
-│   └── shared/                         
-│       ├── Sidebar.tsx
-│       ├── PageHeader.tsx
-│       └── CurrencyInput.tsx
-├── lib/                                
-│   ├── prisma.ts                       
-│   ├── stripe.ts                       
-│   └── fastapi.ts                      
-├── prisma/                             
-│   └── schema.prisma                   
-└── types/                              
-    └── index.ts                        
+invoice-app/ (Next.js)                  api-service/ (Django)
+├── app/                                ├── core/                       # Project Settings
+│   ├── (auth)/                         │   ├── settings.py
+│   ├── (dashboard)/                    │   └── urls.py
+│   ├── portal/                         ├── apps/                       # Functional Apps
+│   └── api/                            │   ├── forecast/
+├── components/                         │   │   ├── urls.py
+│   ├── ui/                             │   │   └── views.py
+│   ├── invoices/                       │   └── reports/
+│   ├── cashflow/                       │       ├── urls.py
+│   └── shared/                         │       └── views.py
+├── lib/                                ├── manage.py
+├── prisma/                             ├── requirements.txt
+└── types/                              └── .env
+
+infra/ (Orchestration)
+├── docker-compose.yml                  # Local Stack
+├── docker-compose.prod.yml              # Production Stack
+└── nginx/
+    └── nginx.conf                      # Reverse Proxy
 ```
 
 ---
