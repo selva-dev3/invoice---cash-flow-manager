@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/forecast/', include('apps.forecast.urls')),
     path('api/reports/', include('apps.reports.urls')),
+    path('api/pdf/', include('apps.reports.urls')),
 ]
