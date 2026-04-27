@@ -19,7 +19,7 @@ const routes = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
-    href: "/dashboard",
+    href: "/",
   },
   {
     label: "Invoices",
@@ -59,7 +59,7 @@ export function Sidebar() {
   return (
     <div className="flex flex-col h-full bg-white border-r shadow-sm">
       <div className="p-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white font-bold text-lg">
             I
           </div>
