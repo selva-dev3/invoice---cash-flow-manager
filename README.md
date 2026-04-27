@@ -77,10 +77,10 @@ The **Invoice & Cash Flow Manager** is a professional-grade, full-stack financia
 ### Infrastructure
 | Layer | Technology |
 | :--- | :--- |
-| Database | PostgreSQL (Primary) |
+| Database | Supabase (PostgreSQL) |
 | Caching/Queue | Redis |
 | Hosting (Web) | Vercel |
-| Hosting (API/DB) | Railway |
+| Hosting (API) | Railway |
 | Monitoring | Sentry |
 | CI/CD | GitHub Actions |
 | Containerization | Docker & Docker Compose |
@@ -305,8 +305,8 @@ EXCHANGE_RATE_API_KEY="your-ex-key"
 ### Prerequisites
 - **Node.js** 20.x or higher
 - **Python** 3.11+
-- **Docker** & Docker Compose
-- **PostgreSQL** 15+ (if not using Docker)
+- **Docker** & Docker Compose (for Redis)
+- **Supabase Account** (for PostgreSQL)
 
 ### Installation Steps
 1.  **Clone the Repository:**
@@ -316,7 +316,7 @@ EXCHANGE_RATE_API_KEY="your-ex-key"
     ```
 2.  **Start Infrastructure:**
     ```bash
-    docker-compose up -d  # Starts Postgres & Redis
+    docker-compose up -d  # Starts Redis
     ```
 3.  **Setup Next.js:**
     ```bash
