@@ -25,9 +25,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     # Local apps
+    'apps.accounts',
     'apps.forecast',
     'apps.reports',
 ]
+
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
