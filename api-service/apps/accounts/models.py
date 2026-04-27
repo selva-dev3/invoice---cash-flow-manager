@@ -22,6 +22,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     password = models.CharField(max_length=255, db_column='passwordHash', null=True, blank=True)
+    last_login = models.DateTimeField(db_column='lastLogin', null=True, blank=True)
     role = models.CharField(max_length=50, default='ADMIN')
     currency = models.CharField(max_length=10, default='USD')
     createdAt = models.DateTimeField(auto_now_add=True, db_column='createdAt')
@@ -41,6 +42,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+class UserSettings(models.Model):
+    id = models.CharField(primary_key=True, max_length=25)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, db_column='userId', related_name='settings')
+    companyName = models.CharField(max_length=255, null=True, blank=True, db_column='companyName')
+    logoUrl = models.CharField(max_length=255, null=True, blank=True, db_column='logoUrl')
+    taxNumber = models.CharField(max_length=100, null=True, blank=True, db_column='taxNumber')
+    address = models.TextField(null=True, blank=True)
+    paymentTerms = models.CharField(max_length=100, default='Net 30', db_column='paymentTerms')
+    invoicePrefix = models.CharField(max_length=50, default='INV-', db_column='invoicePrefix')
+    nextNumber = models.IntegerField(default=1, db_column='nextNumber')
+
+    class Meta:
+        db_table = 'UserSettings'
+        managed = False
 
 class Client(models.Model):
     id = models.CharField(primary_key=True, max_length=25)

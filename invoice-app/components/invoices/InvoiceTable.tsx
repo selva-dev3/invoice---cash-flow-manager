@@ -12,9 +12,7 @@ import {
   getSortedRowModel,
   SortingState,
 } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Trash, Edit, Send, Download, Copy } from "lucide-react"
-import { toast } from "sonner"
-
+import { MoreHorizontal, Eye, Trash, Edit, Send, Download, Copy, Loader2 } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -36,6 +34,12 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { InvoiceStatus } from "@prisma/client"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { 
+  useInvoices, 
+  useDeleteInvoice, 
+  useDuplicateInvoice, 
+  useSendInvoice 
+} from "@/hooks/use-api"
 
 interface InvoiceWithClient {
   id: string
@@ -48,54 +52,16 @@ interface InvoiceWithClient {
   status: InvoiceStatus
 }
 
-interface InvoiceTableProps {
-  data: InvoiceWithClient[]
-}
+export function InvoiceTable() {
+  const { data: invoices, isLoading, error } = useInvoices()
+  const deleteMutation = useDeleteInvoice()
+  const duplicateMutation = useDuplicateInvoice()
+  const sendMutation = useSendInvoice()
 
-export function InvoiceTable({ data }: InvoiceTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null)
   const router = useRouter()
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/v1/invoices/${id}`, {
-        method: "DELETE",
-      })
-
-      if (response.ok) {
-        toast.success("Invoice deleted successfully")
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to delete invoice")
-      }
-    } catch (error) {
-      toast.error("An error occurred while deleting the invoice")
-    } finally {
-      setIsDeleteDialogOpen(false)
-      setInvoiceToDelete(null)
-    }
-  }
-
-  const handleDuplicate = async (id: string) => {
-    try {
-      const response = await fetch(`/api/v1/invoices/${id}/duplicate`, {
-        method: "POST",
-      })
-
-      if (response.ok) {
-        const newInvoice = await response.json()
-        toast.success("Invoice duplicated")
-        router.push(`/invoices/${newInvoice.id}/edit`)
-      } else {
-        toast.error("Failed to duplicate invoice")
-      }
-    } catch (error) {
-      toast.error("An error occurred")
-    }
-  }
 
   const columns: ColumnDef<InvoiceWithClient>[] = [
     {
@@ -154,8 +120,12 @@ export function InvoiceTable({ data }: InvoiceTableProps) {
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => handleDuplicate(invoice.id)}>
-                <Copy className="mr-2 h-4 w-4" /> Duplicate
+              <DropdownMenuItem 
+                onClick={() => duplicateMutation.mutate(invoice.id)}
+                disabled={duplicateMutation.isPending}
+              >
+                <Copy className="mr-2 h-4 w-4" /> 
+                {duplicateMutation.isPending ? "Duplicating..." : "Duplicate"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
@@ -164,11 +134,12 @@ export function InvoiceTable({ data }: InvoiceTableProps) {
                 </a>
               </DropdownMenuItem>
               {(invoice.status === InvoiceStatus.DRAFT || invoice.status === InvoiceStatus.SENT) && (
-                <DropdownMenuItem onClick={() => {
-                  // handleSend(invoice.id)
-                  toast.info("Sending functionality integrated in Detail page")
-                }}>
-                  <Send className="mr-2 h-4 w-4" /> Send Email
+                <DropdownMenuItem 
+                  onClick={() => sendMutation.mutate(invoice.id)}
+                  disabled={sendMutation.isPending}
+                >
+                  <Send className="mr-2 h-4 w-4" /> 
+                  {sendMutation.isPending ? "Sending..." : "Send Email"}
                 </DropdownMenuItem>
               )}
               {invoice.status === InvoiceStatus.DRAFT && (
@@ -190,7 +161,7 @@ export function InvoiceTable({ data }: InvoiceTableProps) {
   ]
 
   const table = useReactTable({
-    data,
+    data: invoices || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -200,6 +171,22 @@ export function InvoiceTable({ data }: InvoiceTableProps) {
       sorting,
     },
   })
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[200px] items-center justify-center bg-white rounded-md border">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[200px] items-center justify-center bg-white rounded-md border text-red-500">
+        Error loading invoices.
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -270,10 +257,10 @@ export function InvoiceTable({ data }: InvoiceTableProps) {
       <ConfirmDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={() => invoiceToDelete && handleDelete(invoiceToDelete)}
+        onConfirm={() => invoiceToDelete && deleteMutation.mutate(invoiceToDelete)}
         title="Delete Invoice"
         description="Are you sure you want to delete this invoice? Only draft invoices can be deleted. This action cannot be undone."
-        confirmLabel="Delete"
+        confirmLabel={deleteMutation.isPending ? "Deleting..." : "Delete"}
         variant="danger"
       />
     </div>

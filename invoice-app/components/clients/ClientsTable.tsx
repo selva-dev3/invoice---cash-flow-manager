@@ -14,9 +14,7 @@ import {
   getFilteredRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Trash, Search } from "lucide-react"
-import { toast } from "sonner"
-
+import { MoreHorizontal, Eye, Trash, Search, Loader2 } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -37,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ClientFormDialog } from "./ClientFormDialog"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { useClients, useDeleteClient } from "@/hooks/use-api"
 
 interface ClientWithStats {
   id: string
@@ -47,37 +46,15 @@ interface ClientWithStats {
   currency: string
 }
 
-interface ClientsTableProps {
-  data: ClientWithStats[]
-}
+export function ClientsTable() {
+  const { data: clients, isLoading, error } = useClients()
+  const deleteMutation = useDeleteClient()
 
-export function ClientsTable({ data }: ClientsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<string | null>(null)
   const router = useRouter()
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/v1/clients/${id}`, {
-        method: "DELETE",
-      })
-
-      if (response.ok) {
-        toast.success("Client deleted successfully")
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to delete client")
-      }
-    } catch (error) {
-      toast.error("An error occurred while deleting the client")
-    } finally {
-      setIsDeleteDialogOpen(false)
-      setClientToDelete(null)
-    }
-  }
 
   const columns: ColumnDef<ClientWithStats>[] = [
     {
@@ -146,7 +123,7 @@ export function ClientsTable({ data }: ClientsTableProps) {
   ]
 
   const table = useReactTable({
-    data,
+    data: clients || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -159,6 +136,22 @@ export function ClientsTable({ data }: ClientsTableProps) {
       columnFilters,
     },
   })
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[200px] items-center justify-center bg-white rounded-md border">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[200px] items-center justify-center bg-white rounded-md border text-red-500">
+        Error loading clients.
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -242,10 +235,10 @@ export function ClientsTable({ data }: ClientsTableProps) {
       <ConfirmDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={() => clientToDelete && handleDelete(clientToDelete)}
+        onConfirm={() => clientToDelete && deleteMutation.mutate(clientToDelete)}
         title="Delete Client"
         description="Are you sure you want to delete this client? This action cannot be undone and will fail if the client has existing invoices."
-        confirmLabel="Delete"
+        confirmLabel={deleteMutation.isPending ? "Deleting..." : "Delete"}
         variant="danger"
       />
     </div>

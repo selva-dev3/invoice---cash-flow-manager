@@ -13,4 +13,5 @@ urlpatterns = [
     path('api/forecast/', include('apps.forecast.urls')),
     path('api/reports/', include('apps.reports.urls')),
     path('api/pdf/', include('apps.reports.urls')),
+    path('api/accounts/', include('apps.accounts.urls')),
 ]

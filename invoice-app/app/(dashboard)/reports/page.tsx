@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useReports } from "@/hooks/use-api"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { 
@@ -16,7 +17,7 @@ import {
   Pie
 } from "recharts"
 import { formatCurrency } from "@/lib/utils"
-import { TrendingUp, TrendingDown, Receipt, DollarSign, Calendar } from "lucide-react"
+import { TrendingUp, TrendingDown, Receipt, DollarSign, Calendar, Loader2 } from "lucide-react"
 import { 
   Select, 
   SelectContent, 
@@ -39,32 +40,24 @@ interface SummaryData {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
 export default function ReportsPage() {
-  const [data, setData] = useState<SummaryData | null>(null)
   const [year, setYear] = useState(new Date().getFullYear().toString())
-  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchReport() {
-      setIsLoading(true)
-      try {
-        const response = await fetch(`/api/v1/reports/tax-summary?year=${year}`)
-        const result = await response.json()
-        setData(result)
-      } catch (error) {
-        console.error("Failed to fetch report:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchReport()
-  }, [year])
+  const { data, isLoading, error } = useReports(year)
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-96">Loading reports...</div>
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      </div>
+    )
   }
 
-  if (!data) {
-    return <div>Failed to load data.</div>
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-96 text-red-500">
+        Failed to load financial reports.
+      </div>
+    )
   }
 
   const chartData = [
@@ -153,7 +146,7 @@ export default function ReportsPage() {
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 />
                 <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
+                  {chartData.map((_: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : index === 1 ? '#f43f5e' : '#3b82f6'} />
                   ))}
                 </Bar>
@@ -181,7 +174,7 @@ export default function ReportsPage() {
                     dataKey="amount"
                     nameKey="category"
                   >
-                    {data.expenseBreakdown.map((entry, index) => (
+                    {data.expenseBreakdown.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
