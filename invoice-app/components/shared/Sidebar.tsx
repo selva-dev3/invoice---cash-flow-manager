@@ -42,6 +42,11 @@ const routes = [
     href: "/expenses",
   },
   {
+    label: "Reports",
+    icon: TrendingUp,
+    href: "/reports",
+  },
+  {
     label: "Cash Flow",
     icon: TrendingUp,
     href: "/cashflow",

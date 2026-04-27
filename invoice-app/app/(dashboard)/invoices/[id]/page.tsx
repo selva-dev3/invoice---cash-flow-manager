@@ -20,6 +20,7 @@ import {
 import { formatCurrency, formatDate } from "@/lib/utils"
 import Link from "next/link"
 import { InvoiceStatus } from "@prisma/client"
+import { DuplicateButton } from "@/components/invoices/DuplicateButton"
 
 export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const session = await auth()
@@ -69,9 +70,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
               <Download className="mr-2 h-4 w-4" /> PDF
             </a>
           </Button>
-          <Button variant="outline" size="sm">
-            <Copy className="mr-2 h-4 w-4" /> Duplicate
-          </Button>
+          <DuplicateButton invoiceId={invoice.id} />
           {(invoice.status === InvoiceStatus.DRAFT || invoice.status === InvoiceStatus.SENT) && (
             <Button size="sm" className="bg-brand-primary hover:bg-brand-primary/90">
               <Send className="mr-2 h-4 w-4" /> Send

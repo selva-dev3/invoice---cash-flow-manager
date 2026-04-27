@@ -23,7 +23,7 @@ export async function GET(
 
     const FASTAPI_URL = process.env.FASTAPI_URL || "http://localhost:8000"
     
-    const response = await axios.get(`${FASTAPI_URL}/api/pdf/invoice/${params.id}`, {
+    const response = await axios.get(`${FASTAPI_URL}/api/pdf/invoice/${params.id}/`, {
       responseType: 'arraybuffer',
       headers: {
         'Authorization': `Bearer ${session.user.id}` // Passing userId as a simple mock for shared auth

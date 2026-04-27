@@ -87,6 +87,50 @@ class InvoicePDFView(APIView):
         except Exception as e:
             return HttpResponse(status=500, content=f"Error generating PDF: {str(e)}")
 
+from django.db.models import Sum
+from apps.accounts.models import Invoice, Expense
+from django.utils import timezone
+from datetime import datetime
+
 class ReportView(APIView):
+    permission_classes = [AllowAny] # In production, use IsAuthenticated
+    
     def get(self, request):
-        return HttpResponse("Tax summary logic coming soon...")
+        user_id = request.query_params.get('userId')
+        if not user_id:
+            return HttpResponse(status=400, content="userId query parameter is required")
+            
+        year = request.query_params.get('year', timezone.now().year)
+        
+        try:
+            # Aggregate Invoices
+            invoices = Invoice.objects.filter(user_id=user_id, issueDate__year=year)
+            total_income = invoices.filter(status='PAID').aggregate(Sum('total'))['total__sum'] or 0
+            tax_collected = invoices.filter(status='PAID').aggregate(Sum('taxAmount'))['taxAmount__sum'] or 0
+            
+            # Aggregate Expenses
+            expenses = Expense.objects.filter(user_id=user_id, expenseDate__year=year)
+            total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+            
+            # Category breakdown for expenses
+            expense_categories = expenses.values('category').annotate(total=Sum('amount')).order_by('-total')
+            
+            data = {
+                "year": year,
+                "summary": {
+                    "totalIncome": float(total_income),
+                    "totalExpenses": float(total_expenses),
+                    "netIncome": float(total_income - total_expenses),
+                    "taxCollected": float(tax_collected)
+                },
+                "expenseBreakdown": [
+                    {"category": item['category'], "amount": float(item['total'])}
+                    for item in expense_categories
+                ]
+            }
+            
+            from django.http import JsonResponse
+            return JsonResponse(data)
+            
+        except Exception as e:
+            return HttpResponse(status=500, content=f"Error generating report: {str(e)}")

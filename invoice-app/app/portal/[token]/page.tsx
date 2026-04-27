@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, CreditCard, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { InvoiceStatus } from "@prisma/client"
+import { PortalPaymentButton } from "@/components/portal/PortalPaymentButton"
 
 export default async function PublicPortalPage({ params }: { params: { token: string } }) {
   const invoice = await prisma.invoice.findUnique({
@@ -45,12 +46,7 @@ export default async function PublicPortalPage({ params }: { params: { token: st
             </a>
           </Button>
           {!isPaid && (
-            <Button className="bg-brand-primary hover:bg-brand-primary/90" asChild>
-              {/* This would normally point to a client-side component that calls the create-link API */}
-              <Link href={`/portal/${params.token}/pay`}>
-                <CreditCard className="mr-2 h-4 w-4" /> Pay Now
-              </Link>
-            </Button>
+            <PortalPaymentButton portalToken={params.token} />
           )}
         </div>
       </div>
